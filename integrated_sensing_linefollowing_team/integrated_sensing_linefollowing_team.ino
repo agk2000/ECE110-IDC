@@ -1,3 +1,5 @@
+long startTime = millis();
+
 #include <Servo.h>
 
 //Team Code
@@ -13,10 +15,12 @@ int QTIdurations[3];
 int QTIvalues[3];
 
 //Sensing
-int threshold = 100;
+int threshold_qti = 100;
 int count = 0;
 const int pingPin = 7;
-int tall_block_count = 0;
+int tall_block_count = 0;        
+char outgoing;
+long threshold_Ping = 200;
 
 //Communication
 #include<SoftwareSerial.h>
@@ -24,35 +28,27 @@ int tall_block_count = 0;
 #define Tx 16
 
 void setup() {
-  //Line sensing
-  left.attach(11);
-  right.attach(12);
-  Serial.begin(9600);
+  left.attach(11); //Attach left servo
+  right.attach(12); //Attach right servo
 
   //Sensing
-  pinMode(8, OUTPUT);
-  pinMode(9, OUTPUT);
-  pinMode(45, OUTPUT);
-  pinMode(46, OUTPUT);
+  pinMode(45, OUTPUT);//on-board LED
+  pinMode(46, OUTPUT);//on-board LED
 
   //LCD
   Serial3.begin(9600);
-  Serial3.println("                    ");
+  Serial3.write(12); //clear LCD screen
+  Serial3.write(13); //clear LCD screen
 
   //Communication
   Serial2.begin(9600);
 
-  //turn off on-board LED
-  digitalWrite(46, HIGH);
-  digitalWrite(45, HIGH);
+  digitalWrite(46, HIGH);//turn off on-board LED
+  digitalWrite(45, HIGH);//turn off on-board LED
 }
 
 void loop() {
-  // if left black, turn left
-  // if right black, turn right
-  // if all three, increment hashmarks
-
-  checkSensors();
+  checkSensors(); // if left black, turn left; if right black, turn right; if all three, increment hashmarks
 
   if (QTIvalues[0] and not QTIvalues[2]) { // if left
     left.write(90); // left backwards
@@ -65,104 +61,40 @@ void loop() {
   else {
     if(QTIvalues[0] and QTIvalues[1] and QTIvalues[2]) {
       count++;
-      Serial.println(count);
+      stopBot();
 
-      left.write(93);
-      right.write(93);
-
-//********************************* 
-      long duration, inches, cm;
-
-      pinMode(pingPin, OUTPUT);
-      digitalWrite(pingPin, LOW);
-      delayMicroseconds(2);
-      digitalWrite(pingPin, HIGH);
-      delayMicroseconds(5);
-      digitalWrite(pingPin, LOW);
-    
-      pinMode(pingPin, INPUT);
-      duration = pulseIn(pingPin, HIGH);
-      //Serial.println(duration);
-      delay(100);
-    
-      long threshold = 200;
-    
-      if (duration < threshold) {
-        //digitalWrite(8, HIGH);
-        digitalWrite(46, LOW);
-        digitalWrite(45, HIGH);
-        tall_block_count++;
-
-        //Serial2.write('t');
-        
-      }
-      else {
-        //digitalWrite(8, LOW);
-        digitalWrite(46, HIGH);
-        digitalWrite(45, LOW);
-        //delay(100);
-        //Serial2.write('s');
-        //delay(100);
-      }
-      Serial3.println(tall_block_count);
-
-      
-//**************************************
+      pingSense();
       delay(500);
 
-      if(count == 5){
-        left.write(93);
-        right.write(93);
+      if(count == 5){ //if the robot is on the fifth hash
+        stopBot();
         left.detach();
         right.detach();
-
-        Serial2.print(tall_block_count);
-        Serial2.println();
-        
-        for(int i = 0;  i < 10; i++) {
-          switch (tall_block_count) {
-            case 1:
-              Serial2.write('p');
-              break;
-            case 2:
-              Serial2.write('q');
-               break;
-            case 3:
-              Serial2.write('r');
-               break;
-            case 4:
-              Serial2.write('s');
-               break;
-            case 5:
-              Serial2.write('t');
-             break;
-            default:
-              break;
-            }            
+        calculateOutgoing(); //update char outgoing based off of tall_block_count
+          
+        for(int i = 0;  i < 2; i++) {
+            Serial2.write(outgoing);            
         }
-        teamResults[3] = tall_block_count;
-
+        teamResults[3] = tall_block_count; //our robot calculation
 
         //Team code
-        while(!receiveCharacter()) {}
+        while(!receiveCharacter()) {
+        }
         compute();
         if(minIndex == 0) {Serial3.write("1 is lowest.");}
         if(minIndex == 1) {Serial3.write("2 is lowest.");}
         if(minIndex == 2) {Serial3.write("3 is lowest.");}
         if(minIndex == 3) {Serial3.write("4 is lowest.");}
-        while(!receiveFinalRoutine()) {}
+        while(!receiveFinalRoutine()) {
+        }
         if(finalRoutine == 'x') {Serial3.write("FRX");}
         if(finalRoutine == 'y') {Serial3.write("FRY");}
-        if(finalRoutine == 'z') {Serial3.write("FRZ");}
-        delay(50000000000);
-        
+        if(finalRoutine == 'z') {Serial3.write("FRZ");}        
       }
-      left.write(122);
-      right.write(82);
+      goStraight();
       delay(200);
     }
-    left.write(122);
-    right.write(82);
+    goStraight();
   }
 }
 
@@ -173,8 +105,7 @@ void sendCharacter(char c) {
   delay(50);
 }
 
-//Team Code
-boolean receiveFinalRoutine() {
+boolean receiveFinalRoutine() { //Team Code
   if(Serial2.available()) {
     char incoming = Serial2.read();
     if(incoming >= 'x' && incoming <= 'z') {
@@ -193,7 +124,9 @@ boolean receiveCharacter() {
   // Team 3: k-o
   // Team 4: p-t
   // Team 5: not needed since team 5 computes.
-    
+  if (millies() - startTime > 60000) {
+    return true;
+  }
   if(Serial2.available()){
     char incoming = Serial2.read();
 
@@ -219,7 +152,7 @@ boolean receiveCharacter() {
 //Team Code
 void compute() {
   for(int i = 0; i < 4; i++) {
-    if(teamResults[i] < teamResults[minIndex]) {
+    if(teamResults[i] < teamResults[minIndex] && teamResults[i] != 0) {
       minIndex = i;
     }
   }
@@ -227,9 +160,7 @@ void compute() {
 
 /* 
  * INPUT:  Reads the QTIvalues from the QTI sensors stored in the array QTIpins[]
- * OUTPUT: A 0 or 1 in array QTIvalues[] depending on if the sensor reads a dark or light objects
- * In order to calibrate what is dark and what is light, use the threshold variable above
- * 
+ * OUTPUT: A 0 or 1 in array QTIvalues[] depending on if the sensor reads a dark or light objects 
  * From: https://github.com/erisawesome/QTI-Sensor-Demo/blob/master/QTI-Sensor-Demo.ino
  */
 void checkSensors() {
@@ -245,6 +176,65 @@ void checkSensors() {
     }                                       
     QTIdurations[i] = duration;                // store QTIvalues in arrays
     //Serial.println(QTIdurations[0] + QTIdurations[1]+QTIdurations[2]);
-    QTIvalues[i] = (duration > threshold);     // 
+    QTIvalues[i] = (duration > threshold_qti);     // 
   }
+}
+
+
+void pingSense() {
+      long duration, inches, cm;
+
+      pinMode(pingPin, OUTPUT);
+      digitalWrite(pingPin, LOW);
+      delayMicroseconds(2);
+      digitalWrite(pingPin, HIGH);
+      delayMicroseconds(5);
+      digitalWrite(pingPin, LOW);
+    
+      pinMode(pingPin, INPUT);
+      duration = pulseIn(pingPin, HIGH);
+      delay(100);
+   
+      if (duration < threshold_Ping) {
+        digitalWrite(46, LOW);
+        digitalWrite(45, HIGH);
+        tall_block_count++;        
+      }
+      else {
+        digitalWrite(46, HIGH);
+        digitalWrite(45, LOW);
+      }
+      Serial3.println(tall_block_count);
+}
+
+//
+void goStraight() {
+  left.write(122); // left forwards
+  right.write(83); // right forwards
+}
+void stopBot() {
+  left.write(93);
+  right.write(93);
+}
+
+void calculateOutgoing() {
+  switch (tall_block_count) {
+            case 1:
+              outgoing = 'p';
+              break;
+            case 2:
+              outgoing = 'q';
+               break;
+            case 3:
+              outgoing = 'r';
+               break;
+            case 4:
+              outgoing = 's';
+               break;
+            case 5:
+              outgoing = 't';
+             break;
+            default:
+              break;
+        }
 }
