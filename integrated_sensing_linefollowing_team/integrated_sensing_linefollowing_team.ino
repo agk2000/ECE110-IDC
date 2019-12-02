@@ -16,7 +16,7 @@ int QTIvalues[3];
 
 //Sensing
 int threshold_qti = 100;
-int count = 0;
+int hash_count = 0;
 const int pingPin = 7;
 int tall_block_count = 0;        
 char outgoing;
@@ -60,13 +60,13 @@ void loop() {
   }
   else {
     if(QTIvalues[0] and QTIvalues[1] and QTIvalues[2]) {
-      count++;
+      hash_count++;
       stopBot();
 
       pingSense();
       delay(500);
 
-      if(count == 5){ //if the robot is on the fifth hash
+      if(hash_count == 5){ //if the robot is on the fifth hash
         stopBot();
         left.detach();
         right.detach();
