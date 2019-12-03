@@ -1,20 +1,18 @@
-long startTime = millis();
-
-#include <Servo.h>
-
-//Team Code
+//Team Code Variables
 int teamResults[4];
 int minIndex = 0; 
 char finalRoutine;
+long startTime = millis();
 
-//Line Sensing
+//Line Sensing Variables
+#include <Servo.h>
 Servo left;
 Servo right;
 int QTIpins[] = {49, 51, 53}; // left, center, right
 int QTIdurations[3];
 int QTIvalues[3];
 
-//Sensing
+//PING))) Sensing Variables 
 int threshold_qti = 100;
 int hash_count = 0;
 const int pingPin = 7;
@@ -22,29 +20,35 @@ int tall_block_count = 0;
 char outgoing;
 long threshold_Ping = 200;
 
-//Communication
+//Communication Variables
 #include<SoftwareSerial.h>
 #define Rx 17
 #define Tx 16
+
+//Light Show Variables
+int r = 45;
+int b = 44;
+int g = 46;
 
 void setup() {
   left.attach(11); //Attach left servo
   right.attach(12); //Attach right servo
 
   //Sensing
-  pinMode(45, OUTPUT);//on-board LED
-  pinMode(46, OUTPUT);//on-board LED
-
-  //LCD
+  pinMode(45, OUTPUT);//on-board LED Red
+  pinMode(46, OUTPUT);//on-board LED Green
+  pinMode(44, OUTPUT);//on-board LED Blue
+  digitalWrite(46, HIGH);//turn off on-board LED
+  digitalWrite(45, HIGH);//turn off on-board LED
+  digitalWrite(44, HIGH);//turn off on-board LED
+  
+  //LCD Screen
   Serial3.begin(9600);
   Serial3.write(12); //clear LCD screen
   Serial3.write(13); //clear LCD screen
 
   //Communication
   Serial2.begin(9600);
-
-  digitalWrite(46, HIGH);//turn off on-board LED
-  digitalWrite(45, HIGH);//turn off on-board LED
 }
 
 void loop() {
@@ -87,9 +91,18 @@ void loop() {
         if(minIndex == 3) {Serial3.write("4 is lowest.");}
         while(!receiveFinalRoutine()) {
         }
-        if(finalRoutine == 'x') {Serial3.write("FRX");}
-        if(finalRoutine == 'y') {Serial3.write("FRY");}
-        if(finalRoutine == 'z') {Serial3.write("FRZ");}        
+        if(finalRoutine == 'x') { //Dino escaped, dino wins
+          Serial3.write("FRX");
+        }
+        if(finalRoutine == 'y') {
+          Serial3.write("FRY");
+        }
+        if(finalRoutine == 'z') { //Dino did not escape, security team won
+          Serial3.write("FRZ");
+          actOne();
+          actTwo();
+          actThree();
+        }        
       }
       goStraight();
       delay(200);
@@ -124,7 +137,7 @@ boolean receiveCharacter() {
   // Team 3: k-o
   // Team 4: p-t
   // Team 5: not needed since team 5 computes.
-  if (millies() - startTime > 60000) {
+  if (millis() - startTime > 60000) {
     return true;
   }
   if(Serial2.available()){
@@ -180,7 +193,6 @@ void checkSensors() {
   }
 }
 
-
 void pingSense() {
       long duration, inches, cm;
 
@@ -207,11 +219,12 @@ void pingSense() {
       Serial3.println(tall_block_count);
 }
 
-//
+
 void goStraight() {
   left.write(122); // left forwards
   right.write(83); // right forwards
 }
+
 void stopBot() {
   left.write(93);
   right.write(93);
@@ -237,4 +250,98 @@ void calculateOutgoing() {
             default:
               break;
         }
+}
+
+
+//Light Show if security bots win
+void bu(int timer){
+  digitalWrite(r,HIGH);
+  digitalWrite(g,HIGH);
+  digitalWrite(b,LOW);
+  delay(2*timer);
+}
+
+void rd(int timer){
+  digitalWrite(r,LOW);
+  digitalWrite(g,HIGH);
+  digitalWrite(b,HIGH);
+  delay(2*timer);
+}
+
+void gn(int timer){
+  digitalWrite(r,HIGH);
+  digitalWrite(g,LOW);
+  digitalWrite(b,HIGH);
+  delay(2*timer);
+}
+
+void wt(int timer){
+  digitalWrite(r,LOW);
+  digitalWrite(g,LOW);
+  digitalWrite(b,LOW);
+  delay(2*timer);
+}
+
+void off(int timer){
+  digitalWrite(r,HIGH);
+  digitalWrite(g,HIGH);
+  digitalWrite(b,HIGH);
+  delay(2*timer);
+}
+
+void actOne(){ //about 5 secounds
+  //Only team 1
+  off(1500);
+  //Teams 1,2; 2 wait 1500 before
+  off(1250);
+  //teams 1,2,3 3 wait 1250 before
+  off(1330);
+  //teams 1,2,3,4, 4 wait 1330 before
+  wt(125);
+  off(125);
+  wt(125);
+  off(125);
+  wt(125);
+  off(125);
+  wt(125);
+  off(125);
+}
+
+void actTwo(){ //about 5.5 secounds
+  bu(500);
+  gn(500);
+  bu(1000);
+  rd(500);
+  bu(1000);
+  gn(500);
+  bu(1000);
+  rd(500); 
+}
+
+void actThree(){ //about 7 seconds
+  rd(500);
+  gn(500);
+  rd(500);
+  gn(500);
+  wt(500);
+  bu(500);
+  wt(500);
+  bu(500);
+  rd(250);
+  gn(250);
+  rd(250);
+  gn(250);
+  wt(250);
+  bu(250);
+  wt(250);
+  bu(250);
+  rd(125);
+  gn(125);
+  rd(125);
+  gn(125);
+  wt(125);
+  bu(125);
+  wt(125);
+  bu(125);
+  off(125);
 }
