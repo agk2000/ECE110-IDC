@@ -1,9 +1,3 @@
-//Team Code Variables
-int teamResults[4];
-int minIndex = 0; 
-char finalRoutine;
-long startTime = millis();
-
 //Line Sensing Variables
 #include <Servo.h>
 Servo left;
@@ -25,10 +19,51 @@ long threshold_Ping = 200;
 #define Rx 17
 #define Tx 16
 
+//Team Code Variables
+int teamResults[4];
+int minIndex = 0; 
+char finalRoutine;
+long startTime = millis();
+
 //Light Show Variables
 int r = 45;
 int b = 44;
 int g = 46;
+
+
+
+//Music
+#define NOTE_D2  73
+#define NOTE_DS2 78
+#define NOTE_F2  87
+#define NOTE_G2  98
+#define NOTE_AS2 117
+#define NOTE_C3  131
+#define NOTE_D3  147
+#define NOTE_DS3 156
+
+int melody[] = { 0,0,0,0,0,NOTE_D3,NOTE_C3,NOTE_D3,NOTE_DS3,NOTE_DS3,NOTE_D3,NOTE_DS3,NOTE_DS3,
+NOTE_DS3,NOTE_DS3,NOTE_F2,NOTE_AS2,NOTE_AS2,NOTE_AS2,NOTE_AS2,NOTE_AS2,0,NOTE_D2,NOTE_D2,NOTE_DS2,NOTE_DS2,NOTE_D2,NOTE_F2,NOTE_G2,
+NOTE_F2,NOTE_F2,NOTE_D2,NOTE_F2,NOTE_D2,NOTE_G2,NOTE_F2,NOTE_F2,NOTE_F2,NOTE_F2,NOTE_G2,NOTE_F2,NOTE_F2,NOTE_AS2,NOTE_AS2,NOTE_DS2,NOTE_DS2,NOTE_AS2,NOTE_AS2,NOTE_AS2,NOTE_AS2,NOTE_F2,
+NOTE_D2,NOTE_F2,NOTE_D2,NOTE_DS2,NOTE_F2,NOTE_F2,NOTE_F2,NOTE_F2,NOTE_F2
+};
+
+int tempo[] = {1.5,1.5,1.5,1.5,1.5,4,2,4,3,8,4,3,8,2,8,8,6,16,8,8,3,8,3,8,3,8,4,4,3,8,3,8,3,8,6,16,6,16,2,4,8,8,3,8,3,8,
+4,4,3,8,3,8,3,8,6,16,6,16,3,8
+};
+
+
+const int note_g = 198;
+const int note_b = 245;
+const int note_c = 261;
+const int note_d = 294;
+const int note_e = 329;
+const int note_f = 349;
+const int note_gh = 391;
+
+ 
+const int buzzerPin = 8;
+
 
 void setup() {
   left.attach(11); //Attach left servo
@@ -49,16 +84,22 @@ void setup() {
 
   //Communication
   Serial2.begin(9600);
+
+
+  //music
+  pinMode(8, OUTPUT); // Set buzzer - pin 8 as an output
+  
 }
 
 void loop() {
-  checkSensors(); // if left black, turn left; if right black, turn right; if all three, increment hashmarks
+  // if left black, turn left; if right black, turn right; if all three, increment hashmarks
+  checkSensors(); //update QTIvalues array indicating whether on line
 
   if (QTIvalues[0] and not QTIvalues[2]) { // if left
     left.write(90); // left backwards
     right.write(90); // right forwards
   }
-  else if (QTIvalues[2] and not QTIvalues[0]) {
+  else if (QTIvalues[2] and not QTIvalues[0]) { // if right
     left.write(96); // left forwards
     right.write(96); // right backwards
   }
@@ -67,7 +108,7 @@ void loop() {
       hash_count++;
       stopBot();
 
-      pingSense();
+      pingSense(); //determine whether tall black or short block present
       delay(500);
 
       if(hash_count == 5){ //if the robot is on the fifth hash
@@ -81,7 +122,7 @@ void loop() {
         }
         teamResults[3] = tall_block_count; //our robot calculation
 
-        //Team code
+        //Team code- wait to receive everyones character if done early
         while(!receiveCharacter()) {
         }
         compute();
@@ -94,8 +135,41 @@ void loop() {
         if(finalRoutine == 'x') { //Dino escaped, dino wins
           Serial3.write("FRX");
         }
-        if(finalRoutine == 'y') {
-          Serial3.write("FRY");
+        if(finalRoutine == 'y') { //Special case, both tie
+          beep(note_c, 750);  
+          beep(note_c, 250);  
+          beep(note_b, 250);  
+          beep(note_c, 1000);
+         
+          beep(note_c, 250);  
+          beep(note_b, 250);  
+          beep(note_c, 500);
+          
+          beep(note_d, 250);
+          beep(note_d, 500);
+          beep(note_f, 250);
+          beep(note_f, 750);
+        
+          beep(note_e, 250);
+          beep(note_c, 250); //end of line 1
+          beep(note_d, 500);
+          beep(note_b, 250);
+          beep(note_g, 500);
+          beep(note_e, 250);
+          beep(note_c, 250);
+          beep(note_d, 750);
+        
+          beep(note_gh, 250);
+          beep(note_c, 250);
+          beep(note_f, 500);
+          beep(note_e, 250);
+          beep(note_e, 750);
+          
+          beep(note_d, 250);
+          beep(note_d, 750);
+          
+          beep(note_c, 250);
+          beep(note_b, 250); //end of line 2
         }
         if(finalRoutine == 'z') { //Dino did not escape, security team won
           Serial3.write("FRZ");
@@ -173,7 +247,7 @@ void compute() {
 
 /* 
  * INPUT:  Reads the QTIvalues from the QTI sensors stored in the array QTIpins[]
- * OUTPUT: A 0 or 1 in array QTIvalues[] depending on if the sensor reads a dark or light objects 
+ * OUTPUT: A 0 or 1 in array QTIvalues[] depending on if the sensor reads a dark or light path underneath 
  * From: https://github.com/erisawesome/QTI-Sensor-Demo/blob/master/QTI-Sensor-Demo.ino
  */
 void checkSensors() {
@@ -193,6 +267,10 @@ void checkSensors() {
   }
 }
 
+/*
+ * Determines if the block at the hash is tall or short 
+ * If tall, update tall_block_count
+ */
 void pingSense() {
       long duration, inches, cm;
 
@@ -230,6 +308,11 @@ void stopBot() {
   right.write(93);
 }
 
+
+/* 
+ * The outgoing letter is determined based off of the number of tall blocks
+ * Number of tall blocks is never less than 1 or greater than 5
+ */
 void calculateOutgoing() {
   switch (tall_block_count) {
             case 1:
@@ -250,6 +333,30 @@ void calculateOutgoing() {
             default:
               break;
         }
+}
+
+void beep(int note, int duration)
+{
+  //Play tone on buzzerPin
+  tone(buzzerPin, note, duration);
+ 
+  //Play different LED depending on value of 'counter'
+  if(counter % 2 == 0)
+  {
+    digitalWrite(ledPin1, HIGH);
+    delay(duration);
+    digitalWrite(ledPin1, LOW);
+  }else
+  {
+    digitalWrite(ledPin2, HIGH);
+    delay(duration);
+    digitalWrite(ledPin2, LOW);
+  }
+ 
+  //Stop tone on buzzerPin
+  noTone(buzzerPin);
+ 
+  delay(50);
 }
 
 
