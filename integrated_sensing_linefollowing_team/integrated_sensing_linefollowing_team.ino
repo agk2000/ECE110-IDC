@@ -136,40 +136,10 @@ void loop() {
           Serial3.write("FRX");
         }
         if(finalRoutine == 'y') { //Special case, both tie
-          beep(note_c, 750);  
-          beep(note_c, 250);  
-          beep(note_b, 250);  
-          beep(note_c, 1000);
-         
-          beep(note_c, 250);  
-          beep(note_b, 250);  
-          beep(note_c, 500);
-          
-          beep(note_d, 250);
-          beep(note_d, 500);
-          beep(note_f, 250);
-          beep(note_f, 750);
-        
-          beep(note_e, 250);
-          beep(note_c, 250); //end of line 1
-          beep(note_d, 500);
-          beep(note_b, 250);
-          beep(note_g, 500);
-          beep(note_e, 250);
-          beep(note_c, 250);
-          beep(note_d, 750);
-        
-          beep(note_gh, 250);
-          beep(note_c, 250);
-          beep(note_f, 500);
-          beep(note_e, 250);
-          beep(note_e, 750);
-          
-          beep(note_d, 250);
-          beep(note_d, 750);
-          
-          beep(note_c, 250);
-          beep(note_b, 250); //end of line 2
+          Serial3.write("FRY");
+          actOne();
+          actTwo();
+          actThree();
         }
         if(finalRoutine == 'z') { //Dino did not escape, security team won
           Serial3.write("FRZ");
@@ -335,17 +305,6 @@ void calculateOutgoing() {
         }
 }
 
-void beep(int note, int duration)
-{
-  //Play tone on buzzerPin
-  tone(buzzerPin, note, duration);
-  delay(duration);
- 
-  //Stop tone on buzzerPin
-  noTone(buzzerPin);
- 
-  delay(50);
-}
 
 
 //Light Show if security bots win

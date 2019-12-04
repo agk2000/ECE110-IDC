@@ -16,14 +16,7 @@ void setup()
  
 void loop()
 {
- 
-  //Play first section
-  //firstSection();
- 
-  //Play second section
-  //secondSection();
-  
-  //Variant 1 http://easymusic.altervista.org/jurassic-park-theme-harmonica-sheet-music-guitar-chords/
+  //http://easymusic.altervista.org/jurassic-park-theme-harmonica-sheet-music-guitar-chords/
   beep(note_c, 750);  
   beep(note_c, 250);  
   beep(note_b, 250);  
@@ -59,25 +52,6 @@ void loop()
   beep(note_c, 250);
   beep(note_b, 250); //end of line 2
 
-
-
- 
-  delay(500);
- 
-  //Repeat second section
-  //secondSection();
- /*
-  //Variant 2
-  beep(f, 250);  
-  beep(gS, 500);  
-  beep(f, 375);  
-  beep(cH, 125);
-  beep(a, 500);  
-  beep(f, 375);  
-  beep(cH, 125);
-  beep(a, 650);  
- 
-  delay(650);*/
   delay(1000);
 }
  
