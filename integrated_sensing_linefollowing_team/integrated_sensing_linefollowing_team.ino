@@ -339,19 +339,7 @@ void beep(int note, int duration)
 {
   //Play tone on buzzerPin
   tone(buzzerPin, note, duration);
- 
-  //Play different LED depending on value of 'counter'
-  if(counter % 2 == 0)
-  {
-    digitalWrite(ledPin1, HIGH);
-    delay(duration);
-    digitalWrite(ledPin1, LOW);
-  }else
-  {
-    digitalWrite(ledPin2, HIGH);
-    delay(duration);
-    digitalWrite(ledPin2, LOW);
-  }
+  delay(duration);
  
   //Stop tone on buzzerPin
   noTone(buzzerPin);
