@@ -4,10 +4,10 @@ Servo left;
 Servo right;
 int QTIpins[] = {49, 51, 53}; // left, center, right
 int QTIdurations[3];
-int QTIvalues[3];
-
-//PING))) Sensing Variables 
+int QTIvalues[3]; 
 int threshold_qti = 100;
+
+//PING))) Sensing Variables
 int hash_count = 0;
 const int pingPin = 7;
 int tall_block_count = 0;        
@@ -30,41 +30,6 @@ int r = 45;
 int b = 44;
 int g = 46;
 
-
-
-//Music
-#define NOTE_D2  73
-#define NOTE_DS2 78
-#define NOTE_F2  87
-#define NOTE_G2  98
-#define NOTE_AS2 117
-#define NOTE_C3  131
-#define NOTE_D3  147
-#define NOTE_DS3 156
-
-int melody[] = { 0,0,0,0,0,NOTE_D3,NOTE_C3,NOTE_D3,NOTE_DS3,NOTE_DS3,NOTE_D3,NOTE_DS3,NOTE_DS3,
-NOTE_DS3,NOTE_DS3,NOTE_F2,NOTE_AS2,NOTE_AS2,NOTE_AS2,NOTE_AS2,NOTE_AS2,0,NOTE_D2,NOTE_D2,NOTE_DS2,NOTE_DS2,NOTE_D2,NOTE_F2,NOTE_G2,
-NOTE_F2,NOTE_F2,NOTE_D2,NOTE_F2,NOTE_D2,NOTE_G2,NOTE_F2,NOTE_F2,NOTE_F2,NOTE_F2,NOTE_G2,NOTE_F2,NOTE_F2,NOTE_AS2,NOTE_AS2,NOTE_DS2,NOTE_DS2,NOTE_AS2,NOTE_AS2,NOTE_AS2,NOTE_AS2,NOTE_F2,
-NOTE_D2,NOTE_F2,NOTE_D2,NOTE_DS2,NOTE_F2,NOTE_F2,NOTE_F2,NOTE_F2,NOTE_F2
-};
-
-int tempo[] = {1.5,1.5,1.5,1.5,1.5,4,2,4,3,8,4,3,8,2,8,8,6,16,8,8,3,8,3,8,3,8,4,4,3,8,3,8,3,8,6,16,6,16,2,4,8,8,3,8,3,8,
-4,4,3,8,3,8,3,8,6,16,6,16,3,8
-};
-
-
-const int note_g = 198;
-const int note_b = 245;
-const int note_c = 261;
-const int note_d = 294;
-const int note_e = 329;
-const int note_f = 349;
-const int note_gh = 391;
-
- 
-const int buzzerPin = 8;
-
-
 void setup() {
   left.attach(11); //Attach left servo
   right.attach(12); //Attach right servo
@@ -80,7 +45,7 @@ void setup() {
   //LCD Screen
   Serial3.begin(9600);
   Serial3.write(12); //clear LCD screen
-  Serial3.write(13); //clear LCD screen
+  //Serial3.write(13); //clear LCD screen
 
   //Communication
   Serial2.begin(9600);
@@ -125,6 +90,7 @@ void loop() {
         //Team code- wait to receive everyones character if done early
         while(!receiveCharacter()) {
         }
+        Serial3.write(13);
         compute();
         if(minIndex == 0) {Serial3.write("1 is lowest.");}
         if(minIndex == 1) {Serial3.write("2 is lowest.");}
@@ -135,7 +101,7 @@ void loop() {
         if(finalRoutine == 'x') { //Dino escaped, dino wins
           Serial3.write("FRX");
         }
-        if(finalRoutine == 'y') { //Special case, both tie
+        if(finalRoutine == 'y') { //Special case
           Serial3.write("FRY");
           actOne();
           actTwo();
@@ -307,7 +273,7 @@ void calculateOutgoing() {
 
 
 
-//Light Show if security bots win
+//Light Show if security bots win or special case
 void bu(int timer){
   digitalWrite(r,HIGH);
   digitalWrite(g,HIGH);
