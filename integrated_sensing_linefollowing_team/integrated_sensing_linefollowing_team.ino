@@ -49,11 +49,6 @@ void setup() {
 
   //Communication
   Serial2.begin(9600);
-
-
-  //music
-  pinMode(8, OUTPUT); // Set buzzer - pin 8 as an output
-  
 }
 
 void loop() {
@@ -226,7 +221,6 @@ void pingSense() {
       Serial3.println(tall_block_count);
 }
 
-
 void goStraight() {
   left.write(122); // left forwards
   right.write(83); // right forwards
@@ -236,7 +230,6 @@ void stopBot() {
   left.write(93);
   right.write(93);
 }
-
 
 /* 
  * The outgoing letter is determined based off of the number of tall blocks
