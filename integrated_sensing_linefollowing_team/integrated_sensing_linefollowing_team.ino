@@ -121,13 +121,6 @@ void loop() {
   }
 }
 
-void sendCharacter(char c) {
-  char outgoing = c;
-  Serial2.write(outgoing);
-  digitalWrite(45, LOW);
-  delay(50);
-}
-
 boolean receiveFinalRoutine() { //Team Code
   if(Serial2.available()) {
     char incoming = Serial2.read();
